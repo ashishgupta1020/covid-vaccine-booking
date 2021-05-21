@@ -1,6 +1,7 @@
 import json
 from hashlib import sha256
 from collections import Counter
+import threading
 from inputimeout import inputimeout, TimeoutOccurred
 import tabulate, copy, time, datetime, requests, sys, os, random
 from captcha import captcha_builder, captcha_builder_auto
@@ -14,7 +15,7 @@ CAPTCHA_URL = "https://cdn-api.co-vin.in/api/v2/auth/getRecaptcha"
 OTP_PUBLIC_URL = "https://cdn-api.co-vin.in/api/v2/auth/public/generateOTP"
 OTP_PRO_URL = "https://cdn-api.co-vin.in/api/v2/auth/generateMobileOTP"
 
-WARNING_BEEP_DURATION = (1000, 5000)
+WARNING_BEEP_DURATION = (1000, 5000, 2, 5)
  
 
 try:
@@ -40,6 +41,44 @@ else:
     def beep(freq, duration):
         winsound.Beep(freq, duration)
 
+class Beeper:
+    warning_beeper = None
+
+    def __init__(self, 
+        freq = WARNING_BEEP_DURATION[0],
+        duration = WARNING_BEEP_DURATION[1],
+        repeat_count = WARNING_BEEP_DURATION[2],
+        # in seconds
+        repeat_interval = WARNING_BEEP_DURATION[3]):
+
+        self.freq = freq
+        self.duration = duration
+        self.repeat_count = repeat_count
+        self.repeat_interval = repeat_interval
+
+    def start(self):
+        if not self.warning_beeper:
+            self.warning_beeper = threading.Thread(target=self.beep)
+            self.warning_beeper.start()
+
+    def beep(self):
+            # brew install SoX --> install SOund eXchange universal sound sample translator on mac
+            count = 0
+            while count != self.repeat_count:
+                os.system(
+                    f"play -n synth {self.duration/1000} sin {self.freq} >/dev/null 2>&1")    
+                count+= 1
+                if count == self.repeat_count:
+                    break
+                time.sleep(self.repeat_interval)
+            
+            self.warning_beeper = None
+
+    def join(self):
+        if self.warning_beeper:
+            self.warning_beeper.join()
+
+local_beeper = Beeper()
 
 def viable_options(resp, minimum_slots, min_age_booking, fee_type, dose_num):
     options = []
@@ -410,6 +449,7 @@ def check_calendar_by_pincode(
                     )
 
             else:
+                print("Response code: " + resp.status_code)
                 pass
 
         for location in location_dtls:
@@ -593,6 +633,7 @@ def check_and_book(
             return True
         else:
             try:
+                local_beeper.start()
                 choice = choice.split(".")
                 choice = [int(item) for item in choice]
                 print(
@@ -835,7 +876,7 @@ def clear_bucket_and_send_OTP(storage_url,mobile, request_header):
     else:
         print("Unable to Create OTP")
         print(txnId.text)
-        time.sleep(5)  # Saftey net againt rate limit
+        time.sleep(5)  # Safety net againt rate limit
         txnId = None
 
     return txnId
@@ -851,7 +892,7 @@ def generate_token_OTP(mobile, request_header):
     if txnId is None:
         return txnId
 
-    time.sleep(10)
+    time.sleep(5)
     t_end = time.time() + 60 * 3  # try to read OTP for atmost 3 minutes
     while time.time() < t_end:
         response = requests.get(storage_url)
@@ -863,13 +904,15 @@ def generate_token_OTP(mobile, request_header):
             OTP = OTP.replace("Your OTP to register/access CoWIN is ", "")
             OTP = OTP.replace(". It will be valid for 3 minutes. - CoWIN", "")
             if not OTP:
-                time.sleep(5)
+                print("Couln't read OTP. Retrying read in 1 second..")
+                time.sleep(1)
                 continue
             break
         else:
             # Hope it won't 500 a little later
             print("error fetching OTP API:" + response.text)
-            time.sleep(5)
+            print("Retrying in 1 second..")
+            time.sleep(1)
 
     if not OTP:
         return None

@@ -4,12 +4,13 @@ import copy
 import time
 from types import SimpleNamespace
 import requests, sys, argparse, os, datetime
-from utils import generate_token_OTP, generate_token_OTP_manual, check_and_book, beep, BENEFICIARIES_URL, WARNING_BEEP_DURATION, \
+from utils import generate_token_OTP, generate_token_OTP_manual, check_and_book, beep, Beeper, BENEFICIARIES_URL, WARNING_BEEP_DURATION, \
     display_info_dict, save_user_info, collect_user_details, get_saved_user_info, confirm_and_proceed, get_dose_num, display_table, fetch_beneficiaries
 
 
 def main():
     parser = argparse.ArgumentParser()
+    local_beeper = Beeper(1000, 500, 2, 1)
     parser.add_argument('--token', help='Pass token directly')
     args = parser.parse_args()
 
@@ -17,7 +18,7 @@ def main():
     mobile = None
 
     print('Running Script')
-    beep(500, 150)
+    local_beeper.start()
 
     try:
         base_request_header = {
@@ -28,6 +29,7 @@ def main():
         if args.token:
             token = args.token
         else:
+            local_beeper.join()
             mobile = input("Enter the registered mobile number: ")
             filename = filename + mobile + ".json"
             otp_pref = input("\nDo you want to enter OTP manually, instead of auto-read? \nRemember selecting n would require some setup described in README (y/n Default n): ")
@@ -38,8 +40,8 @@ def main():
                         token = generate_token_OTP(mobile, base_request_header)
                     except Exception as e:
                         print(str(e))
-                        print('OTP Retrying in 5 seconds')
-                        time.sleep(5)
+                        print('OTP Retrying in 1 seconds')
+                        time.sleep(1)
                 elif otp_pref=="y":
                     token = generate_token_OTP_manual(mobile, base_request_header)
 
@@ -125,11 +127,7 @@ def main():
                                              dose_num=get_dose_num(collected_details))
 
                 # check if token is still valid
-                beneficiaries_list = requests.get(BENEFICIARIES_URL, headers=request_header)
-                if beneficiaries_list.status_code == 200:
-                    token_valid = True
-
-                else:
+                if not token_valid:
                     # if token invalid, regenerate OTP and new token
                    # beep(WARNING_BEEP_DURATION[0], WARNING_BEEP_DURATION[1])
                     print('Token is INVALID.')
@@ -142,15 +140,15 @@ def main():
                                 token = generate_token_OTP(mobile, base_request_header)
                             except Exception as e:
                                 print(str(e))
-                                print('OTP Retrying in 5 seconds')
-                                time.sleep(5)
+                                print('OTP Generation Retrying in 1 second')
+                                time.sleep(1)
                         elif otp_pref=="y":
                             token = generate_token_OTP_manual(mobile, base_request_header)
                     token_valid = True
             except Exception as e:
                 print(str(e))
-                print('Retryin in 5 seconds')
-                time.sleep(5)
+                print('Retrying main loop in 1 second')
+                time.sleep(1)
 
     except Exception as e:
         print(str(e))
