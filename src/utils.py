@@ -374,6 +374,7 @@ def check_calendar_by_district(
                     )
 
             else:
+                print(f'Response code: {resp.status_code}')
                 pass
 
         # for location in location_dtls:
