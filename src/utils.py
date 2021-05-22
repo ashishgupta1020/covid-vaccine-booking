@@ -439,7 +439,7 @@ def check_calendar_by_pincode(
                 resp = resp.json()
 
                 resp = filter_centers_by_age(resp, min_age_booking)
-                                                
+
                 if "centers" in resp:
                     print(
                         f"Centers available in {location['pincode']} from {start_date} as of {today.strftime('%Y-%m-%d %H:%M:%S')}: {len(resp['centers'])}"
@@ -449,7 +449,7 @@ def check_calendar_by_pincode(
                     )
 
             else:
-                print("Response code: " + resp.status_code)
+                print(f"Response: {resp.status_code} : {resp.text}")
                 pass
 
         for location in location_dtls:
