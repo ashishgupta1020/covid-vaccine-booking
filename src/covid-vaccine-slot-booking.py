@@ -6,7 +6,7 @@ from types import SimpleNamespace
 import requests, sys, argparse, os, datetime
 from utils import generate_token_OTP, generate_token_OTP_manual, check_and_book, beep, Beeper, BENEFICIARIES_URL, WARNING_BEEP_DURATION, \
     display_info_dict, save_user_info, collect_user_details, get_saved_user_info, confirm_and_proceed, get_dose_num, display_table, fetch_beneficiaries
-
+from fake_useragent import UserAgent
 
 def main():
     parser = argparse.ArgumentParser()
@@ -21,8 +21,10 @@ def main():
     local_beeper.start()
 
     try:
+        ua = UserAgent(use_cache_server=False, verify_ssl=False)
         base_request_header = {
-            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36',
+            'User-Agent': ua.random,
+            'Cache-Control': 'no-cache, no-store, max-age=0, must-revalidate'
         }
 
         token = None
@@ -110,6 +112,8 @@ def main():
         while token_valid:
             request_header = copy.deepcopy(base_request_header)
             request_header["Authorization"] = f"Bearer {token}"
+            # rotate User-Agent
+            request_header["User-Agent"] = ua.random
 
             # call function to check and book slots
             try:
