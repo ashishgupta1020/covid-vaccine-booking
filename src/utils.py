@@ -376,10 +376,10 @@ def check_calendar_by_district(
             else:
                 pass
 
-        for location in location_dtls:
-            if location["district_name"] in [option["district"] for option in options]:
-                for _ in range(2):
-                    beep(location["alert_freq"], 150)
+        # for location in location_dtls:
+        #     if location["district_name"] in [option["district"] for option in options]:
+        #         for _ in range(2):
+        #             beep(location["alert_freq"], 150)
         return options
 
     except Exception as e:
@@ -441,10 +441,10 @@ def check_calendar_by_pincode(
                 print(f"Response: {resp.status_code} : {resp.text}")
                 pass
 
-        for location in location_dtls:
-            if int(location["pincode"]) in [option["pincode"] for option in options]:
-                for _ in range(2):
-                    beep(location["alert_freq"], 150)
+        # for location in location_dtls:
+        #     if int(location["pincode"]) in [option["pincode"] for option in options]:
+        #         for _ in range(2):
+        #             beep(location["alert_freq"], 150)
 
         return options
 
@@ -625,7 +625,7 @@ def check_and_book(
                 print(msg, end="\r", flush=True)
                 sys.stdout.flush()
                 time.sleep(1)
-            slots_available = True
+            slots_available = False
 
     except TimeoutOccurred:
         time.sleep(1)
