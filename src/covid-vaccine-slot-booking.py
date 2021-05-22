@@ -125,7 +125,10 @@ def main():
                                              dose_num=get_dose_num(collected_details))
 
                 # check if token is still valid
-                if not token_valid:
+                beneficiaries_list = requests.get(BENEFICIARIES_URL, headers=request_header)
+                if beneficiaries_list.status_code == 200:
+                    token_valid = True
+                elif beneficiaries_list.status_code == 401:
                     # if token invalid, regenerate OTP and new token
                    # beep(WARNING_BEEP_DURATION[0], WARNING_BEEP_DURATION[1])
                     print('Token is INVALID.')
@@ -143,6 +146,8 @@ def main():
                         elif otp_pref=="y":
                             token = generate_token_OTP_manual(mobile, base_request_header)
                     token_valid = True
+                else:
+                    print(f'While checking if token valid, response code: {beneficiaries_list.status_code}')
             except Exception as e:
                 print(str(e))
                 print('Retrying main loop in 1 second')
