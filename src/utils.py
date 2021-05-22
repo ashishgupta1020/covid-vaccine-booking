@@ -469,7 +469,7 @@ def check_calendar_by_pincode(
                     )
 
             else:
-                print(f"Response: {resp.status_code} : {resp.text}")
+                print(f"While searching by pincode, response code: {resp.status_code}")
                 pass
 
         # for location in location_dtls:
