@@ -1019,17 +1019,17 @@ def clear_bucket_and_send_OTP(storage_url, mobile, request_header):
     return txnId
 
 
-def generate_token_OTP(mobile, request_header):
+def generate_token_OTP(mobile, request_header, request_otp = True):
     """
     This function generate OTP and returns a new token or None when not able to get token
     """
     storage_url = "https://kvdb.io/ASth4wnvVDPkg2bdjsiqMN/" + mobile
 
-    txnId = clear_bucket_and_send_OTP(storage_url, mobile, request_header)
-
-    if txnId is None:
-        return txnId
-
+    if request_otp:
+        txnId = clear_bucket_and_send_OTP(storage_url, mobile, request_header)
+        if txnId is None:
+            return txnId
+    
     time.sleep(5)
     t_end = time.time() + 60 * 3  # try to read OTP for atmost 3 minutes
     while time.time() < t_end:

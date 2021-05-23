@@ -132,3 +132,10 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Extra files
+.DS_Store
+src/captcha.gif
+src/captcha.png
+src/captcha.svg
+src/vaccine-booking-details-*

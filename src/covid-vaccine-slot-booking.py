@@ -42,6 +42,18 @@ def main():
             token = args.token
         else:
             local_beeper.join()
+            
+            print("================Admin controls=================")
+            req_otp_pref = input("Do you want to request OTP when invalid? If n, we will try reading only from storage.\n(y/n Default y):")
+            req_otp_pref = req_otp_pref if req_otp_pref else "y"
+            req_otp_pref = True if req_otp_pref == "y" else False
+
+            use_proxies = input("Do you want to use proxy servers? Might be slow/unreliable, so only use for extra runs, not main run.\n(y/n Default n):")
+            use_proxies = use_proxies if use_proxies else "n"
+            use_proxies = True if use_proxies == "y" else False
+
+            print("================================================")
+
             mobile = input("Enter the registered mobile number: ")
             filename = filename + mobile + ".json"
             otp_pref = input("\nDo you want to enter OTP manually, instead of auto-read? \nRemember selecting n would require some setup described in README (y/n Default n): ")
@@ -49,7 +61,7 @@ def main():
             while token is None:
                 if otp_pref=="n":
                     try:
-                        token = generate_token_OTP(mobile, base_request_header)
+                        token = generate_token_OTP(mobile, base_request_header, req_otp_pref)
                     except Exception as e:
                         print(str(e))
                         print('OTP Retrying in 1 seconds')
